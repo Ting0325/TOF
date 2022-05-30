@@ -2,6 +2,7 @@ import java.util.Random;
 
 public class Driver {
 	public static void main(String[] args) {
+		/*
 		System.out.println("type 0");
 		int[][] arr = genGroundTruth(0);	
 		printArr(arr);
@@ -40,6 +41,30 @@ public class Driver {
 		System.out.println("predicted:");
 		System.out.println(frame.predicted);
 		printArr(frame.predicted);
+		*/
+		for(int i = 0; i < 10;i ++) {
+			System.out.println("==============================================");
+			//Frame frame0 = new Frame(200, 2);
+			int numTrials = i*20;
+			Frame frame0 = new Frame(numTrials, 2);
+			System.out.println(String.format("#trials = %d, #type = %d", numTrials, 2));
+			frame0.predict(1);
+			System.out.println("1 distance: "+ frame0.distance());
+			frame0.predict(2);
+			System.out.println("2 distance: "+ frame0.distance());
+			frame0.predict(3);
+			System.out.println("3 distance: "+ frame0.distance());
+			frame0.predict(4);
+			System.out.println("4 distance: "+ frame0.distance());
+			frame0.predict(5);
+			System.out.println("5 distance: "+ frame0.distance());
+			frame0.predictVoted();
+			System.out.println("voted distance: "+ frame0.distance());
+			System.out.println("ground truth:");
+			printArr(frame0.groundTruth);
+			System.out.println("voted prediction");
+			printArr(frame0.predicted);
+		}
 	}
 	
 	static int[][] genGroundTruth(int type){
