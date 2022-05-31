@@ -46,6 +46,17 @@ public class Frame {
 		this.predicted = predict();
 	}
 	
+	Frame(int numTrials, int type, int center){
+		Random rand = new Random();
+		this.type = rand.nextInt(4);
+		this.numTrials = numTrials;	//4 ~ 255
+		this.groundTruth = genGroundTruth(type, center);
+		this.probVector = genProbVector();
+		this.stopVector = genStopVector();
+		this.histogram = genHistogram();
+		this.predicted = predict();
+	}
+	
 	ArrayList<double[]> genProbVector(){
 		ArrayList<double[]> list = new ArrayList<double[]>();
 		for(int i = 0;i < 16;i ++) {
@@ -153,6 +164,77 @@ public class Frame {
 		return arr;
 	}
 	
+	int[][] genGroundTruth(int type, int center){
+		int[][] arr = new int[4][4];
+		Random rand = new Random();
+		if(type == 0) {
+			for(int i = 0; i < arr.length;i ++) {
+				for(int j = 0; j < arr[i].length;j ++) {
+					arr[i][j] = rand.nextInt(255);
+				}
+			}
+		}else if(type == 1) {
+			int n0 = rand.nextInt(254)+1;
+			int n1 = rand.nextInt(254)+1;
+			int n2 = rand.nextInt(254)+1;
+			int n3 = rand.nextInt(254)+1;
+			arr[0][0] = n0;
+			arr[1][0] = n0;
+			arr[0][1] = n0;
+			arr[1][1] = n0;
+			
+			arr[0][2] = n1;
+			arr[0][3] = n1;
+			arr[1][2] = n1;
+			arr[1][3] = n1;
+			
+			arr[2][0] = n2;
+			arr[3][0] = n2;
+			arr[2][1] = n2;
+			arr[3][1] = n2;
+			
+			arr[2][2] = n3;
+			arr[3][2] = n3;
+			arr[2][3] = n3;
+			arr[3][3] = n3;
+		}else if(type == 2) {	//convex
+			int ci = center/4;//rand.nextInt(4);
+			int cj = center%4;//rand.nextInt(4);
+			int val = rand.nextInt(236)+1;
+			for(int i = 0; i < arr.length;i ++) {
+				for(int j = 0; j < arr[i].length;j ++) {
+					if(ci == i && cj == j) {
+						arr[i][j] = val;
+					}else if(Math.abs(ci-i) < 2 && Math.abs(cj-j) < 2) {
+						arr[i][j] = val + 5;
+					}else if(Math.abs(ci-i) < 3 && Math.abs(cj-j) < 3) {
+						arr[i][j] = val + 10;
+					}else if(Math.abs(ci-i) < 4 && Math.abs(cj-j) < 4) {
+						arr[i][j] = val + 15;
+					}
+				}
+			}
+		}else if(type == 3) {//concave
+			int ci = rand.nextInt(4);
+			int cj = rand.nextInt(4);
+			int val = rand.nextInt(255);
+			for(int i = 0; i < arr.length;i ++) {
+				for(int j = 0; j < arr[i].length;j ++) {
+					if(ci == i && cj == j) {
+						arr[i][j] = val;
+					}else if(Math.abs(ci-i) < 2 && Math.abs(cj-j) < 2) {
+						arr[i][j] = val - 5;
+					}else if(Math.abs(ci-i) < 3 && Math.abs(cj-j) < 3) {
+						arr[i][j] = val - 10;
+					}else if(Math.abs(ci-i) < 4 && Math.abs(cj-j) < 4) {
+						arr[i][j] = val - 15;
+					}
+				}
+			}
+		}
+		return arr;
+	}
+	
 	double[] distance2Prob(int distance, int type) {
 		double[] prob = new double[255];
 		for(int i = 0; i < prob.length;i ++) {
@@ -195,6 +277,9 @@ public class Frame {
 		}
 		return dist;
 	}
+	
+	
+	
 	int[][] predict(int winSize){
 		//find max for window size = 4
 		int[][] dist = new int[4][4];
@@ -457,7 +542,17 @@ public class Frame {
 		return d;
 	}
 	
-	int[][] correct_convex(){
+	int distance(int[][]a, int[][]b) {
+		int d = 0;
+		for(int i = 0; i < groundTruth.length;i ++) {
+			for(int j = 0; j < groundTruth[i].length;j ++) {
+				d += Math.abs(a[i][j] - b[i][j]);
+			}
+		}
+		return d;
+	}
+	
+	int[][] correct_convex_avg(){	//type 2
 		int[][] corrected = new int[4][4];
 		int min = 0, min_i = 0, min_j = 0, min_idx =0;
 		for(int i = 0; i < groundTruth.length;i ++) {
@@ -470,9 +565,37 @@ public class Frame {
 				}
 			}
 		}
-		switch(min_idx) {
-
+		double sum = 0;
+		int avg = 0;
+		for(int i = 0; i < predicted.length;i ++) {
+			for(int j = 0; j < predicted[i].length;j ++) {
+				sum += predicted[i][j];
+			}
 		}
+		
+		switch(min_idx) {
+			case 0:	//sum = predicted[0][3]+predicted[1][3]+predicted[2][3]+predicted[3][3]+predicted[3][2]+predicted[3][2]+predicted[3][1]+predicted[3][0];
+					avg = (int) Math.round((sum-170)/16);
+					corrected[0][0] = avg;
+					corrected[0][1] = avg+5;
+					corrected[0][2] = avg+10;
+					corrected[0][3] = avg+15;
+					corrected[1][0] = avg+5;
+					corrected[1][1] = avg+5;
+					corrected[1][2] = avg+10;
+					corrected[1][3] = avg+15;
+					corrected[2][0] = avg+10;
+					corrected[2][1] = avg+10;
+					corrected[2][2] = avg+10;
+					corrected[2][3] = avg+15;
+					corrected[3][0] = avg+15;
+					corrected[3][1] = avg+15;
+					corrected[3][2] = avg+15;
+					corrected[3][3] = avg+15;
+		}
+		
+
+		
 		return corrected;
 		
 		

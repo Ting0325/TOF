@@ -42,11 +42,11 @@ public class Driver {
 		System.out.println(frame.predicted);
 		printArr(frame.predicted);
 		*/
-		for(int i = 0; i < 10;i ++) {
+		for(int i = 1; i < 11;i ++) {
 			System.out.println("==============================================");
 			//Frame frame0 = new Frame(200, 2);
 			int numTrials = i*20;
-			Frame frame0 = new Frame(numTrials, 2);
+			Frame frame0 = new Frame(numTrials, 2, 0); //Frame(int numTrials, int type, int center)
 			System.out.println(String.format("#trials = %d, #type = %d", numTrials, 2));
 			frame0.predict(1);
 			System.out.println("1 distance: "+ frame0.distance());
@@ -64,6 +64,10 @@ public class Driver {
 			printArr(frame0.groundTruth);
 			System.out.println("voted prediction");
 			printArr(frame0.predicted);
+			int[][] corrected = frame0.correct_convex_avg();
+			System.out.println("corrected by avg and spation correlation");
+			printArr(corrected);
+			System.out.println("corrected distance: "+ frame0.distance(frame0.groundTruth, corrected));
 		}
 	}
 	
