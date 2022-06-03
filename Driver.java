@@ -42,11 +42,12 @@ public class Driver {
 		System.out.println(frame.predicted);
 		printArr(frame.predicted);
 		*/
-		for(int i = 1; i < 11;i ++) {
+		for(int i = 1; i < 2;i ++) {
 			System.out.println("==============================================");
 			//Frame frame0 = new Frame(200, 2);
-			int numTrials = i*20;
+			int numTrials = 7;
 			Frame frame0 = new Frame(numTrials, 2, 0); //Frame(int numTrials, int type, int center)
+			//Frame frame0 = new Frame(numTrials, 0); //Frame(int numTrials, int type)
 			System.out.println(String.format("#trials = %d, #type = %d", numTrials, 2));
 			frame0.predict(1);
 			System.out.println("1 distance: "+ frame0.distance());
@@ -59,6 +60,7 @@ public class Driver {
 			frame0.predict(5);
 			System.out.println("5 distance: "+ frame0.distance());
 			frame0.predictVoted();
+			//frame0.predictVoted_v2();
 			System.out.println("voted distance: "+ frame0.distance());
 			System.out.println("ground truth:");
 			printArr(frame0.groundTruth);
@@ -68,6 +70,18 @@ public class Driver {
 			System.out.println("corrected by avg and spation correlation");
 			printArr(corrected);
 			System.out.println("corrected distance: "+ frame0.distance(frame0.groundTruth, corrected));
+			//
+			
+			
+			printNum( 256);
+			for(int k = 0; k < 16;k ++) {
+				System.out.println("idx: "+k);
+				System.out.println("prob:");
+				printArr(frame0.probVector.get(k));
+				System.out.println("histogram:");
+				printArr(frame0.histogram.get(k));
+			}
+
 		}
 	}
 	
@@ -77,14 +91,14 @@ public class Driver {
 		if(type == 0) {
 			for(int i = 0; i < arr.length;i ++) {
 				for(int j = 0; j < arr[i].length;j ++) {
-					arr[i][j] = rand.nextInt(255);
+					arr[i][j] = rand.nextInt(251)+1;
 				}
 			}
 		}else if(type == 1) {
-			int n0 = rand.nextInt(255);
-			int n1 = rand.nextInt(255);
-			int n2 = rand.nextInt(255);
-			int n3 = rand.nextInt(255);
+			int n0 = rand.nextInt(251)+1;
+			int n1 = rand.nextInt(251)+1;
+			int n2 = rand.nextInt(251)+1;
+			int n3 = rand.nextInt(251)+1;
 			arr[0][0] = n0;
 			arr[1][0] = n0;
 			arr[0][1] = n0;
@@ -174,13 +188,22 @@ public class Driver {
 	
 	static void printArr(double[] arr) {
 		for(int i = 0; i < arr.length;i ++) {
-			System.out.print(arr[i] + " ");
+			System.out.print(arr[i] + "\t");
 		}
+		System.out.println();
+	}
+	
+	static void printNum(int num) {
+		for(int i = 1; i <= num;i ++) {
+			System.out.print(i + "\t");
+		}
+		System.out.println();
 	}
 	
 	static void printArr(int[] arr) {
 		for(int i = 0; i < arr.length;i ++) {
-			System.out.print(arr[i] + "  ");
+			System.out.print(arr[i] + "\t");
 		}
+		System.out.println();
 	}
 }
