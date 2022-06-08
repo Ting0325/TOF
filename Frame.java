@@ -6,6 +6,7 @@ public class Frame {
 	int numTrials;
 	int[][] groundTruth;
 	int[][] predicted;
+	int[][][] predicted_top3;
 	int windowSize;
 	ArrayList<double[]> probVector;
 	ArrayList<int[][]> stopVector;
@@ -43,7 +44,7 @@ public class Frame {
 		this.probVector = genProbVector();
 		this.stopVector = genStopVector();
 		this.histogram = genHistogram();
-		this.predicted = predict();
+		//this.predicted = predict();
 	}
 	
 	Frame(int numTrials, int type, int center){
@@ -54,7 +55,7 @@ public class Frame {
 		this.probVector = genProbVector();
 		this.stopVector = genStopVector();
 		this.histogram = genHistogram();
-		//this.predicted = predict();
+		this.predicted = predict();
 	}
 	
 	ArrayList<double[]> genProbVector(){
@@ -265,7 +266,8 @@ public class Frame {
 				int max = 0;
 				int maxIdx = 0;
 				for(int k = 0; k < 251;k ++) {
-					int sum = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
+					//int sum = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
+					int sum = histogram.get(i*4+j)[k]*4 + histogram.get(i*4+j)[k+1]*7 + histogram.get(i*4+j)[k+2]*6 + histogram.get(i*4+j)[k+3]*5+ histogram.get(i*4+j)[k+4]*4;
 					if(sum > max) {
 						max = sum;
 						maxIdx = k;
@@ -275,795 +277,127 @@ public class Frame {
 				
 			}
 		}
+		predicted = dist;
 		return dist;
 	}
 		
-	int[][] predict(int winSize){
-		int[][] dist = new int[4][4];
-		if(type == 2 || type== 3) {
-			for(int i = 0; i < 4;i ++) {
-				for(int j = 0; j < 4;j ++) {
-					//window size == 1
-					int max1 = 0;
-					int maxIdx1 = 0;
-					for(int k = 0; k < 254;k ++) {
-						int sum1 = histogram.get(i*4+j)[k];
-						if(sum1 > max1) {
-							max1 = sum1;
-							maxIdx1 = k;
-						}
-					}
-					//window size == 2
-					int max2 = 0;
-					int maxIdx2 = 0;
-					for(int k = 0; k < 253;k ++) {
-						int sum2 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1];
-						if(sum2 > max2) {
-							max2 = sum2;
-							maxIdx2 = k;
-						}
-					}
-					//window size == 3
-					int max3 = 0;
-					int maxIdx3 = 0;
-					for(int k = 0; k < 252;k ++) {
-						int sum3 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2];
-						if(sum3 > max3) {
-							max3 = sum3;
-							maxIdx3 = k;
-						}
-					}
-					//window size == 4
-					int max4 = 0;
-					int maxIdx4 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum4 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum4 > max4) {
-							max4 = sum4;
-							maxIdx4 = k;
-						}
-					}
-					//window size == 5
-					int max5 = 0;
-					int maxIdx5 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum5 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3]+ histogram.get(i*4+j)[k+4];
-						if(sum5 > max5) {
-							max5 = sum5;
-							maxIdx5 = k;
-						}
-					}		
-					if(winSize == 1) {
-						dist[i][j] = maxIdx1; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(winSize == 2) {
-						dist[i][j] = maxIdx2 ; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(winSize == 3) {
-						dist[i][j] = maxIdx3 ; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(winSize == 4) {
-						dist[i][j] = maxIdx4 +1; //distance starts at 1
-					}else if(winSize == 5) {
-						dist[i][j] = maxIdx5 +1; //distance starts at 1
-					}			
-				}
-			}
-		}else {	//type == 0 || type ==1
-			for(int i = 0; i < 4;i ++) {
-				for(int j = 0; j < 4;j ++) {
-					//window size == 1
-					int max1 = 0;
-					int maxIdx1 = 0;
-					for(int k = 0; k < 254;k ++) {
-						int sum1 = histogram.get(i*4+j)[k];
-						if(sum1 > max1) {
-							max1 = sum1;
-							maxIdx1 = k;
-						}
-					}
-					//window size == 2
-					int max2 = 0;
-					int maxIdx2 = 0;
-					for(int k = 0; k < 253;k ++) {
-						int sum2 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+2];
-						if(sum2 > max2) {
-							max2 = sum2;
-							maxIdx2 = k;
-						}
-					}
-					//window size == 3
-					int max3 = 0;
-					int maxIdx3 = 0;
-					for(int k = 0; k < 252;k ++) {
-						int sum3 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+4];
-						if(sum3 > max3) {
-							max3 = sum3;
-							maxIdx3 = k;
-						}
-					}
-					//window size == 4
-					int max4 = 0;
-					int maxIdx4 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum4 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum4 > max4) {
-							max4 = sum4;
-							maxIdx4 = k;
-						}
-					}
-					//window size == 5
-					int max5 = 0;
-					int maxIdx5 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum5 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3]+ histogram.get(i*4+j)[k+4];
-						if(sum5 > max5) {
-							max5 = sum5;
-							maxIdx5 = k;
-						}
-					}		
-					if(winSize == 1) {
-						dist[i][j] = maxIdx1; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(winSize == 2) {
-						dist[i][j] = maxIdx2 ; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(winSize == 3) {
-						dist[i][j] = maxIdx3 ; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(winSize == 4) {
-						dist[i][j] = maxIdx4 +1; //distance starts at 1
-					}else if(winSize == 5) {
-						dist[i][j] = maxIdx5 +1; //distance starts at 1
-					}			
-				}
-			}
-		}
+	int[][][] predict(int winSize){
+		int[][][] dist = new int[16][4][4];
 		
-		this.predicted = dist;
-		return dist;
-	}
-	
-	int[][] predictVoted(){
-		//find max for window size = 4
-		int[][] dist = new int[4][4];
 		if(type == 2 || type== 3) {
 			for(int i = 0; i < 4;i ++) {
 				for(int j = 0; j < 4;j ++) {
-					//
-					int max1 = 0;
-					int maxIdx1 = 0;
-					for(int k = 0; k < 254;k ++) {
-						int sum1 = histogram.get(i*4+j)[k];
-						if(sum1 > max1) {
-							max1 = sum1;
-							maxIdx1 = k;
-						}
-					}
-					int max2 = 0;
-					int maxIdx2 = 0;
-					for(int k = 0; k < 253;k ++) {
-						int sum2 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1];
-						if(sum2 > max2) {
-							max2 = sum2;
-							maxIdx2 = k;
-						}
-					}
-					int max3 = 0;
-					int maxIdx3 = 0;
-					for(int k = 0; k < 252;k ++) {
-						int sum3 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2];
-						if(sum3 > max3) {
-							max3 = sum3;
-							maxIdx3 = k;
-						}
-					}
-					int max4 = 0;
-					int maxIdx4 = 0;
+					//window size == 5
+					int max5_1 = 0;
+					int maxIdx5_1 = 0;
+					int max5_2 = 0;
+					int maxIdx5_2 = 0;
+					int max5_3 = 0;
+					int maxIdx5_3 = 0;
+					int max5_4 = 0;
+					int maxIdx5_4 = 0;
+					int max5_5 = 0;
+					int maxIdx5_5 = 0;
+					int max5_6 = 0;
+					int maxIdx5_6 = 0;
+					int max5_7 = 0;
+					int maxIdx5_7 = 0;
+					int max5_8 = 0;
+					int maxIdx5_8 = 0;
+					int max5_9 = 0;
+					int maxIdx5_9 = 0;
+					int max5_10 = 0;
+					int maxIdx5_10 = 0;
+					int max5_11 = 0;
+					int maxIdx5_11 = 0;
+					int max5_12 = 0;
+					int maxIdx5_12 = 0;
+					int max5_13 = 0;
+					int maxIdx5_13 = 0;
+					int max5_14 = 0;
+					int maxIdx5_14 = 0;
+					int max5_15 = 0;
+					int maxIdx5_15 = 0;
+					int max5_16 = 0;
+					int maxIdx5_16 = 0;
 					for(int k = 0; k < 251;k ++) {
-						int sum4 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum4 > max4) {
-							max4 = sum4;
-							maxIdx4 = k;
+						//int sum5 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3]+ histogram.get(i*4+j)[k+4];
+						int sum5 = histogram.get(i*4+j)[k]*4 + histogram.get(i*4+j)[k+1]*7 + histogram.get(i*4+j)[k+2]*6 + histogram.get(i*4+j)[k+3]*5+ histogram.get(i*4+j)[k+4]*4;
+						if(sum5 > max5_1) {
+							max5_1 = sum5;
+							maxIdx5_1 = k;
+						}else if(sum5 > max5_2) {
+							max5_2 = sum5;
+							maxIdx5_2 = k;
+						}else if(sum5 > max5_3) {
+							max5_3 = sum5;
+							maxIdx5_3 = k;
+						}else if(sum5 > max5_4) {
+							max5_4 = sum5;
+							maxIdx5_4 = k;
+						}else if(sum5 > max5_5) {
+							max5_5 = sum5;
+							maxIdx5_5 = k;
+						}else if(sum5 > max5_6) {
+							max5_6 = sum5;
+							maxIdx5_6 = k;
+						}else if(sum5 > max5_7) {
+							max5_7 = sum5;
+							maxIdx5_7 = k;
+						}else if(sum5 > max5_8) {
+							max5_8 = sum5;
+							maxIdx5_8 = k;
+						}else if(sum5 > max5_9) {
+							max5_9 = sum5;
+							maxIdx5_9 = k;
+						}else if(sum5 > max5_10) {
+							max5_10 = sum5;
+							maxIdx5_10 = k;
+						}else if(sum5 > max5_11) {
+							max5_11 = sum5;
+							maxIdx5_11 = k;
+						}else if(sum5 > max5_12) {
+							max5_12 = sum5;
+							maxIdx5_12 = k;
+						}else if(sum5 > max5_13) {
+							max5_13 = sum5;
+							maxIdx5_13 = k;
+						}else if(sum5 > max5_14) {
+							max5_14 = sum5;
+							maxIdx5_14 = k;
+						}else if(sum5 > max5_15) {
+							max5_15 = sum5;
+							maxIdx5_15 = k;
+						}else if(sum5 > max5_16) {
+							max5_16 = sum5;
+							maxIdx5_16 = k;
 						}
-					}
-					int max5 = 0;
-					int maxIdx5 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum5 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum5 > max5) {
-							max5 = sum5;
-							maxIdx5 = k;
-						}
-					}
-					//voting
-					int votes1 = 0, votes2 = 0, votes3 = 0, votes4 = 0, votes5 = 0;
-					//votes1
-					if(maxIdx1 == maxIdx2 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx3 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx4 +1)
-						votes1 ++;
-					if(maxIdx1 == maxIdx5 +1)
-						votes1 ++;
-					//votes2
-					if(maxIdx2  == maxIdx1)
-						votes2 ++;
-					if(maxIdx2 == maxIdx3 )
-						votes2 ++;
-					if(maxIdx2  == maxIdx4 +1)
-						votes2 ++;
-					if(maxIdx2  == maxIdx5 +1)
-						votes2 ++;
-					//votes3
-					if(maxIdx3  == maxIdx1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx2 )
-						votes3 ++;
-					if(maxIdx3  == maxIdx4 +1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx5 +1)
-						votes3 ++;
-					//votes4
-					if(maxIdx4 +1 == maxIdx2)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx3 )
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx1)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx5 +1)
-						votes4 ++;
-					//votes5
-					if(maxIdx5 +1 == maxIdx2 )
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx3)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx1)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx4 +1)
-						votes5 ++;
-					//analyze votes
-					int cnt1 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0, cnt5 = 0;
-					//votes1
-					if(votes1 >= votes2)
-						cnt1 ++;
-					if(votes1 >= votes3)
-						cnt1 ++;
-					if(votes1 >= votes4)
-						cnt1 ++;
-					if(votes1 >= votes5)
-						cnt1 ++;
-					//votes2
-					if(votes2 > votes1)
-						cnt2 ++;
-					if(votes2 >= votes3)
-						cnt2 ++;
-					if(votes2 >= votes4)
-						cnt2 ++;
-					if(votes2 >= votes5)
-						cnt2 ++;
-					//votes3
-					if(votes3 > votes2)
-						cnt3 ++;
-					if(votes3 > votes1)
-						cnt3 ++;
-					if(votes3 >= votes4)
-						cnt3 ++;
-					if(votes3 >= votes5)
-						cnt3 ++;
-					//votes4
-					if(votes4 > votes2)
-						cnt4 ++;
-					if(votes4 > votes1)
-						cnt4 ++;
-					if(votes4 > votes3)
-						cnt4 ++;
-					if(votes4 >= votes5)
-						cnt4 ++;
-					//votes5
-					if(votes5 > votes2)
-						cnt5 ++;
-					if(votes5 > votes1)
-						cnt5 ++;
-					if(votes5 > votes3)
-						cnt5 ++;
-					if(votes5 >= votes4)
-						cnt5 ++;
-					
-					if(cnt1 == 4) {
-						dist[i][j] = maxIdx1; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(cnt2 == 4) {
-						dist[i][j] = maxIdx2 +1; //distance starts at 1
-					}else if(cnt3 == 4) {
-						dist[i][j] = maxIdx3 +1; //distance starts at 1
-					}else if(cnt4 == 4) {
-						dist[i][j] = maxIdx4 +1; //distance starts at 1
-					}else if(cnt5 == 4) {
-						dist[i][j] = maxIdx5 +1; //distance starts at 1
-					}
+					}		
+					dist[0][i][j] = maxIdx5_1 +1; //distance starts at 1			
+					dist[1][i][j] = maxIdx5_2 +1; //distance starts at 1	
+					dist[2][i][j] = maxIdx5_3 +1; //distance starts at 1	
+					dist[3][i][j] = maxIdx5_4 +1; //distance starts at 1	
+					dist[4][i][j] = maxIdx5_5 +1; //distance starts at 1
+					dist[5][i][j] = maxIdx5_6 +1; //distance starts at 1
+					dist[6][i][j] = maxIdx5_7 +1; //distance starts at 1
+					dist[7][i][j] = maxIdx5_8 +1; //distance starts at 1
+					dist[8][i][j] = maxIdx5_9 +1; //distance starts at 1
+					dist[9][i][j] = maxIdx5_10 +1; //distance starts at 1
+					dist[10][i][j] = maxIdx5_11 +1; //distance starts at 1
+					dist[11][i][j] = maxIdx5_12 +1; //distance starts at 1
+					dist[12][i][j] = maxIdx5_13 +1; //distance starts at 1
+					dist[13][i][j] = maxIdx5_14 +1; //distance starts at 1
+					dist[14][i][j] = maxIdx5_15 +1; //distance starts at 1
+					dist[15][i][j] = maxIdx5_16 +1; //distance starts at 1
 				}
 			}
-		}else {	//type ==0 || type==1
-			for(int i = 0; i < 4;i ++) {
-				for(int j = 0; j < 4;j ++) {
-					//
-					int max1 = 0;
-					int maxIdx1 = 0;
-					for(int k = 0; k < 254;k ++) {
-						int sum1 = histogram.get(i*4+j)[k];
-						if(sum1 > max1) {
-							max1 = sum1;
-							maxIdx1 = k;
-						}
-					}
-					int max2 = 0;
-					int maxIdx2 = 0;
-					for(int k = 0; k < 253;k ++) {
-						int sum2 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+2];
-						if(sum2 > max2) {
-							max2 = sum2;
-							maxIdx2 = k;
-						}
-					}
-					int max3 = 0;
-					int maxIdx3 = 0;
-					for(int k = 0; k < 252;k ++) {
-						int sum3 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+4];
-						if(sum3 > max3) {
-							max3 = sum3;
-							maxIdx3 = k;
-						}
-					}
-					int max4 = 0;
-					int maxIdx4 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum4 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum4 > max4) {
-							max4 = sum4;
-							maxIdx4 = k;
-						}
-					}
-					int max5 = 0;
-					int maxIdx5 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum5 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum5 > max5) {
-							max5 = sum5;
-							maxIdx5 = k;
-						}
-					}
-					//voting
-					int votes1 = 0, votes2 = 0, votes3 = 0, votes4 = 0, votes5 = 0;
-					//votes1
-					if(maxIdx1 == maxIdx2 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx3 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx4 +1)
-						votes1 ++;
-					if(maxIdx1 == maxIdx5 +1)
-						votes1 ++;
-					//votes2
-					if(maxIdx2  == maxIdx1)
-						votes2 ++;
-					if(maxIdx2 == maxIdx3 )
-						votes2 ++;
-					if(maxIdx2  == maxIdx4 +1)
-						votes2 ++;
-					if(maxIdx2  == maxIdx5 +1)
-						votes2 ++;
-					//votes3
-					if(maxIdx3  == maxIdx1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx2 )
-						votes3 ++;
-					if(maxIdx3  == maxIdx4 +1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx5 +1)
-						votes3 ++;
-					//votes4
-					if(maxIdx4 +1 == maxIdx2)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx3 )
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx1)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx5 +1)
-						votes4 ++;
-					//votes5
-					if(maxIdx5 +1 == maxIdx2 )
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx3)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx1)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx4 +1)
-						votes5 ++;
-					//analyze votes
-					int cnt1 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0, cnt5 = 0;
-					//votes1
-					if(votes1 >= votes2)
-						cnt1 ++;
-					if(votes1 >= votes3)
-						cnt1 ++;
-					if(votes1 >= votes4)
-						cnt1 ++;
-					if(votes1 >= votes5)
-						cnt1 ++;
-					//votes2
-					if(votes2 > votes1)
-						cnt2 ++;
-					if(votes2 >= votes3)
-						cnt2 ++;
-					if(votes2 >= votes4)
-						cnt2 ++;
-					if(votes2 >= votes5)
-						cnt2 ++;
-					//votes3
-					if(votes3 > votes2)
-						cnt3 ++;
-					if(votes3 > votes1)
-						cnt3 ++;
-					if(votes3 >= votes4)
-						cnt3 ++;
-					if(votes3 >= votes5)
-						cnt3 ++;
-					//votes4
-					if(votes4 > votes2)
-						cnt4 ++;
-					if(votes4 > votes1)
-						cnt4 ++;
-					if(votes4 > votes3)
-						cnt4 ++;
-					if(votes4 >= votes5)
-						cnt4 ++;
-					//votes5
-					if(votes5 > votes2)
-						cnt5 ++;
-					if(votes5 > votes1)
-						cnt5 ++;
-					if(votes5 > votes3)
-						cnt5 ++;
-					if(votes5 >= votes4)
-						cnt5 ++;
-					
-					if(cnt1 == 4) {
-						dist[i][j] = maxIdx1; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(cnt2 == 4) {
-						dist[i][j] = maxIdx2 +1; //distance starts at 1
-					}else if(cnt3 == 4) {
-						dist[i][j] = maxIdx3 +1; //distance starts at 1
-					}else if(cnt4 == 4) {
-						dist[i][j] = maxIdx4 +1; //distance starts at 1
-					}else if(cnt5 == 4) {
-						dist[i][j] = maxIdx5 +1; //distance starts at 1
-					}
-				}
-			}
+		
 		}
-
-		this.predicted = dist;
+		this.predicted_top3 = dist;
 		return dist;
 	}
 	
-	int[][] predictVoted_v2(){
-		//find max for window size = 4
-		int[][] dist = new int[4][4];
-		if(type == 2 || type== 3) {
-			for(int i = 0; i < 4;i ++) {
-				for(int j = 0; j < 4;j ++) {
-					//
-					int max1 = 0;
-					int maxIdx1 = 0;
-					for(int k = 0; k < 254;k ++) {
-						int sum1 = histogram.get(i*4+j)[k];
-						if(sum1 > max1) {
-							max1 = sum1;
-							maxIdx1 = k;
-						}
-					}
-					int max2 = 0;
-					int maxIdx2 = 0;
-					for(int k = 0; k < 253;k ++) {
-						int sum2 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1];
-						if(sum2 > max2) {
-							max2 = sum2;
-							maxIdx2 = k;
-						}
-					}
-					int max3 = 0;
-					int maxIdx3 = 0;
-					for(int k = 0; k < 252;k ++) {
-						int sum3 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2];
-						if(sum3 > max3) {
-							max3 = sum3;
-							maxIdx3 = k;
-						}
-					}
-					int max4 = 0;
-					int maxIdx4 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum4 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum4 > max4) {
-							max4 = sum4;
-							maxIdx4 = k;
-						}
-					}
-					int max5 = 0;
-					int maxIdx5 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum5 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum5 > max5) {
-							max5 = sum5;
-							maxIdx5 = k;
-						}
-					}
-					maxIdx1 = maxIdx3;	//hack
-					//voting
-					int votes1 = 0, votes2 = 0, votes3 = 0, votes4 = 0, votes5 = 0;
-					//votes1
-					if(maxIdx1 == maxIdx2 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx3 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx4 +1)
-						votes1 ++;
-					if(maxIdx1 == maxIdx5 +1)
-						votes1 ++;
-					//votes2
-					if(maxIdx2  == maxIdx1)
-						votes2 ++;
-					if(maxIdx2 == maxIdx3 )
-						votes2 ++;
-					if(maxIdx2  == maxIdx4 +1)
-						votes2 ++;
-					if(maxIdx2  == maxIdx5 +1)
-						votes2 ++;
-					//votes3
-					if(maxIdx3  == maxIdx1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx2 )
-						votes3 ++;
-					if(maxIdx3  == maxIdx4 +1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx5 +1)
-						votes3 ++;
-					//votes4
-					if(maxIdx4 +1 == maxIdx2)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx3 )
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx1)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx5 +1)
-						votes4 ++;
-					//votes5
-					if(maxIdx5 +1 == maxIdx2 )
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx3)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx1)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx4 +1)
-						votes5 ++;
-					//analyze votes
-					int cnt1 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0, cnt5 = 0;
-					//votes1
-					if(votes1 >= votes2)
-						cnt1 ++;
-					if(votes1 >= votes3)
-						cnt1 ++;
-					if(votes1 >= votes4)
-						cnt1 ++;
-					if(votes1 >= votes5)
-						cnt1 ++;
-					//votes2
-					if(votes2 > votes1)
-						cnt2 ++;
-					if(votes2 >= votes3)
-						cnt2 ++;
-					if(votes2 >= votes4)
-						cnt2 ++;
-					if(votes2 >= votes5)
-						cnt2 ++;
-					//votes3
-					if(votes3 > votes2)
-						cnt3 ++;
-					if(votes3 > votes1)
-						cnt3 ++;
-					if(votes3 >= votes4)
-						cnt3 ++;
-					if(votes3 >= votes5)
-						cnt3 ++;
-					//votes4
-					if(votes4 > votes2)
-						cnt4 ++;
-					if(votes4 > votes1)
-						cnt4 ++;
-					if(votes4 > votes3)
-						cnt4 ++;
-					if(votes4 >= votes5)
-						cnt4 ++;
-					//votes5
-					if(votes5 > votes2)
-						cnt5 ++;
-					if(votes5 > votes1)
-						cnt5 ++;
-					if(votes5 > votes3)
-						cnt5 ++;
-					if(votes5 >= votes4)
-						cnt5 ++;
-					
-					if(cnt1 == 4) {
-						dist[i][j] = maxIdx1; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(cnt2 == 4) {
-						dist[i][j] = maxIdx2 +1; //distance starts at 1
-					}else if(cnt3 == 4) {
-						dist[i][j] = maxIdx3 +1; //distance starts at 1
-					}else if(cnt4 == 4) {
-						dist[i][j] = maxIdx4 +1; //distance starts at 1
-					}else if(cnt5 == 4) {
-						dist[i][j] = maxIdx5 +1; //distance starts at 1
-					}
-				}
-			}
-		}else {	//type ==0 || type==1
-			for(int i = 0; i < 4;i ++) {
-				for(int j = 0; j < 4;j ++) {
-					//
-					int max1 = 0;
-					int maxIdx1 = 0;
-					for(int k = 0; k < 254;k ++) {
-						int sum1 = histogram.get(i*4+j)[k];
-						if(sum1 > max1) {
-							max1 = sum1;
-							maxIdx1 = k;
-						}
-					}
-					int max2 = 0;
-					int maxIdx2 = 0;
-					for(int k = 0; k < 253;k ++) {
-						int sum2 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+2];
-						if(sum2 > max2) {
-							max2 = sum2;
-							maxIdx2 = k;
-						}
-					}
-					int max3 = 0;
-					int maxIdx3 = 0;
-					for(int k = 0; k < 252;k ++) {
-						int sum3 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+4];
-						if(sum3 > max3) {
-							max3 = sum3;
-							maxIdx3 = k;
-						}
-					}
-					int max4 = 0;
-					int maxIdx4 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum4 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum4 > max4) {
-							max4 = sum4;
-							maxIdx4 = k;
-						}
-					}
-					int max5 = 0;
-					int maxIdx5 = 0;
-					for(int k = 0; k < 251;k ++) {
-						int sum5 = histogram.get(i*4+j)[k] + histogram.get(i*4+j)[k+1] + histogram.get(i*4+j)[k+2] + histogram.get(i*4+j)[k+3];
-						if(sum5 > max5) {
-							max5 = sum5;
-							maxIdx5 = k;
-						}
-					}
-					//voting
-					int votes1 = 0, votes2 = 0, votes3 = 0, votes4 = 0, votes5 = 0;
-					//votes1
-					if(maxIdx1 == maxIdx2 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx3 )
-						votes1 ++;
-					if(maxIdx1 == maxIdx4 +1)
-						votes1 ++;
-					if(maxIdx1 == maxIdx5 +1)
-						votes1 ++;
-					//votes2
-					if(maxIdx2  == maxIdx1)
-						votes2 ++;
-					if(maxIdx2 == maxIdx3 )
-						votes2 ++;
-					if(maxIdx2  == maxIdx4 +1)
-						votes2 ++;
-					if(maxIdx2  == maxIdx5 +1)
-						votes2 ++;
-					//votes3
-					if(maxIdx3  == maxIdx1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx2 )
-						votes3 ++;
-					if(maxIdx3  == maxIdx4 +1)
-						votes3 ++;
-					if(maxIdx3  == maxIdx5 +1)
-						votes3 ++;
-					//votes4
-					if(maxIdx4 +1 == maxIdx2)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx3 )
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx1)
-						votes4 ++;
-					if(maxIdx4 +1 == maxIdx5 +1)
-						votes4 ++;
-					//votes5
-					if(maxIdx5 +1 == maxIdx2 )
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx3)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx1)
-						votes5 ++;
-					if(maxIdx5 +1 == maxIdx4 +1)
-						votes5 ++;
-					//analyze votes
-					int cnt1 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0, cnt5 = 0;
-					//votes1
-					if(votes1 >= votes2)
-						cnt1 ++;
-					if(votes1 >= votes3)
-						cnt1 ++;
-					if(votes1 >= votes4)
-						cnt1 ++;
-					if(votes1 >= votes5)
-						cnt1 ++;
-					//votes2
-					if(votes2 > votes1)
-						cnt2 ++;
-					if(votes2 >= votes3)
-						cnt2 ++;
-					if(votes2 >= votes4)
-						cnt2 ++;
-					if(votes2 >= votes5)
-						cnt2 ++;
-					//votes3
-					if(votes3 > votes2)
-						cnt3 ++;
-					if(votes3 > votes1)
-						cnt3 ++;
-					if(votes3 >= votes4)
-						cnt3 ++;
-					if(votes3 >= votes5)
-						cnt3 ++;
-					//votes4
-					if(votes4 > votes2)
-						cnt4 ++;
-					if(votes4 > votes1)
-						cnt4 ++;
-					if(votes4 > votes3)
-						cnt4 ++;
-					if(votes4 >= votes5)
-						cnt4 ++;
-					//votes5
-					if(votes5 > votes2)
-						cnt5 ++;
-					if(votes5 > votes1)
-						cnt5 ++;
-					if(votes5 > votes3)
-						cnt5 ++;
-					if(votes5 >= votes4)
-						cnt5 ++;
-					
-					if(cnt1 == 4) {
-						dist[i][j] = maxIdx1; //distance starts at 1 (for type2 and type3 the second idx has th largest probibility)
-					}else if(cnt2 == 4) {
-						dist[i][j] = maxIdx2 +1; //distance starts at 1
-					}else if(cnt3 == 4) {
-						dist[i][j] = maxIdx3 +1; //distance starts at 1
-					}else if(cnt4 == 4) {
-						dist[i][j] = maxIdx4 +1; //distance starts at 1
-					}else if(cnt5 == 4) {
-						dist[i][j] = maxIdx5 +1; //distance starts at 1
-					}
-				}
-			}
-		}
-
-		this.predicted = dist;
-		return dist;
-	}
+	
 	
 	
 	void printArr(int[][] arr) {
@@ -1121,7 +455,7 @@ public class Frame {
 				sum += predicted[i][j];
 			}
 		}
-		
+		System.out.println("min_idx:"+min_idx);
 		switch(min_idx) {
 			case 0:	//sum = predicted[0][3]+predicted[1][3]+predicted[2][3]+predicted[3][3]+predicted[3][2]+predicted[3][2]+predicted[3][1]+predicted[3][0];
 					avg = (int) Math.round((sum-170)/16);
