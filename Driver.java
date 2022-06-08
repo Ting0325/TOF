@@ -1,181 +1,39 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 
 public class Driver {
-	public static void main(String[] args) {
-		/*
-		System.out.println("type 0");
-		int[][] arr = genGroundTruth(0);	
-		printArr(arr);
-		System.out.println();
-		
-		System.out.println("type 1");
-		arr = genGroundTruth(1);	
-		printArr(arr);
-		System.out.println();
-		
-		System.out.println("type 2");
-		arr = genGroundTruth(2);	
-		printArr(arr);
-		System.out.println();
-		
-		System.out.println("type 3");
-		arr = genGroundTruth(3);	
-		printArr(arr);
-		System.out.println();
-		
-		System.out.print("distance2Prob(3, 2)");
-		double[] prob = distance2Prob(3, 2);// distance, type
-		printArr(prob);
-		System.out.println();
-		System.out.println();
-		System.out.println("example of a frame");
-		Frame frame = new Frame(200);
-		System.out.println("type: "+ frame.type);
-		System.out.println("# trials: "+ frame.numTrials);
-		System.out.println("ground truth:");
-		printArr(frame.groundTruth);
-		System.out.println("prob:");
-		printArr(frame.probVector.get(0));
-		System.out.println("histogram:");
-		printArr(frame.histogram.get(0));
-		System.out.println("predicted:");
-		System.out.println(frame.predicted);
-		printArr(frame.predicted);
-		*/
-		for(int i = 1; i < 2;i ++) {
+	public static void main(String[] args) throws IOException {
+		FileWriter myWriter = new FileWriter("exp_log.txt");
+		int numExp = 1;
+
+		int correct = 0;
+		int correctMode = 0;
+		for(int i = 1; i <= numExp;i ++) {
 			System.out.println("==============================================");
-			//Frame frame0 = new Frame(200, 2);
-			int numTrials = 7;
-			Frame frame0 = new Frame(numTrials, 2, 0); //Frame(int numTrials, int type, int center)
-			//Frame frame0 = new Frame(numTrials, 0); //Frame(int numTrials, int type)
-			System.out.println(String.format("#trials = %d, #type = %d", numTrials, 2));
-			frame0.predict(1);
-			System.out.println("1 distance: "+ frame0.distance());
-			frame0.predict(2);
-			System.out.println("2 distance: "+ frame0.distance());
-			frame0.predict(3);
-			System.out.println("3 distance: "+ frame0.distance());
-			frame0.predict(4);
-			System.out.println("4 distance: "+ frame0.distance());
-			frame0.predict(5);
-			System.out.println("5 distance: "+ frame0.distance());
-			frame0.predictVoted();
-			//frame0.predictVoted_v2();
-			System.out.println("voted distance: "+ frame0.distance());
+			Frame frame0 = new Frame(7, 2, 8);//Frame(int numTrials, int type, int center)
 			System.out.println("ground truth:");
 			printArr(frame0.groundTruth);
-			System.out.println("voted prediction");
+			System.out.println("pedicted :");
 			printArr(frame0.predicted);
-			int[][] corrected = frame0.correct_convex_avg();
-			System.out.println("corrected by avg and spation correlation");
-			printArr(corrected);
-			System.out.println("corrected distance: "+ frame0.distance(frame0.groundTruth, corrected));
-			//
-			
-			
-			printNum( 256);
-			for(int k = 0; k < 16;k ++) {
-				System.out.println("idx: "+k);
-				System.out.println("prob:");
-				printArr(frame0.probVector.get(k));
-				System.out.println("histogram:");
-				printArr(frame0.histogram.get(k));
-			}
+			int modeVotedResult = findCenter_mode(frame0.predicted);//
+			//System.out.println("mode Voted Result: "+modeVotedResult);
+			if (modeVotedResult ==0)
+				correctMode ++;
 
 		}
+				//System.out.println(String.format("ARROW: offset: %d, thresh: %d,topK: %d correct: %d", offset, thresh, topK, correct));
+				//myWriter.write(String.format("ARROW: offset: %d, thresh: %d,topK: %d, correct: %d \n", offset, thresh, topK, correct));
+				
+				//System.out.println(String.format("MODE: offset: %d, thresh: %d,topK: %d correct: %d", offset, thresh, topK, correctMode));
+				//myWriter.write(String.format("MODE: offset: %d, thresh: %d,topK: %d, correct: %d \n", offset, thresh, topK, correctMode));
+				//System.out.println("arrow: "+correct);
+				//System.out.println("mode: "+correctMode);
+
+		myWriter.close();
+		
 	}
 	
-	static int[][] genGroundTruth(int type){
-		int[][] arr = new int[4][4];
-		Random rand = new Random();
-		if(type == 0) {
-			for(int i = 0; i < arr.length;i ++) {
-				for(int j = 0; j < arr[i].length;j ++) {
-					arr[i][j] = rand.nextInt(251)+1;
-				}
-			}
-		}else if(type == 1) {
-			int n0 = rand.nextInt(251)+1;
-			int n1 = rand.nextInt(251)+1;
-			int n2 = rand.nextInt(251)+1;
-			int n3 = rand.nextInt(251)+1;
-			arr[0][0] = n0;
-			arr[1][0] = n0;
-			arr[0][1] = n0;
-			arr[1][1] = n0;
-			
-			arr[0][2] = n1;
-			arr[0][3] = n1;
-			arr[1][2] = n1;
-			arr[1][3] = n1;
-			
-			arr[2][0] = n2;
-			arr[3][0] = n2;
-			arr[2][1] = n2;
-			arr[3][1] = n2;
-			
-			arr[2][2] = n3;
-			arr[3][2] = n3;
-			arr[2][3] = n3;
-			arr[3][3] = n3;
-		}else if(type == 2) {	//convex
-			int ci = rand.nextInt(4);
-			int cj = rand.nextInt(4);
-			int val = rand.nextInt(255);
-			for(int i = 0; i < arr.length;i ++) {
-				for(int j = 0; j < arr[i].length;j ++) {
-					if(ci == i && cj == j) {
-						arr[i][j] = val;
-					}else if(Math.abs(ci-i) < 2 && Math.abs(cj-j) < 2) {
-						arr[i][j] = val + 5;
-					}else if(Math.abs(ci-i) < 3 && Math.abs(cj-j) < 3) {
-						arr[i][j] = val + 10;
-					}else if(Math.abs(ci-i) < 4 && Math.abs(cj-j) < 4) {
-						arr[i][j] = val + 15;
-					}
-				}
-			}
-		}else if(type == 3) {//concave
-			int ci = rand.nextInt(4);
-			int cj = rand.nextInt(4);
-			int val = rand.nextInt(255);
-			for(int i = 0; i < arr.length;i ++) {
-				for(int j = 0; j < arr[i].length;j ++) {
-					if(ci == i && cj == j) {
-						arr[i][j] = val;
-					}else if(Math.abs(ci-i) < 2 && Math.abs(cj-j) < 2) {
-						arr[i][j] = val - 5;
-					}else if(Math.abs(ci-i) < 3 && Math.abs(cj-j) < 3) {
-						arr[i][j] = val - 10;
-					}else if(Math.abs(ci-i) < 4 && Math.abs(cj-j) < 4) {
-						arr[i][j] = val - 15;
-					}
-				}
-			}
-		}
-		return arr;
-	}
-	
-	static double[] distance2Prob(int distance, int type) {
-		double[] prob = new double[255];
-		for(int i = 0; i < prob.length;i ++) {
-			prob[i] = 0.3;
-		}
-		if(type == 0 || type == 1) {
-			prob[distance-1] = prob[distance-1] + 0.3;
-			prob[distance-1+1] = prob[distance-1+1] + 0;
-			prob[distance-1+2] = prob[distance-1+2] + 0.3;
-			prob[distance-1+3] = prob[distance-1+3] + 0;
-			prob[distance-1+4] = prob[distance-1+4] + 0.3;
-		}else if(type == 2 || type == 3) {
-			prob[distance-1] = prob[distance-1] + 0.1;
-			prob[distance-1+1] = prob[distance-1+1] + 0.4;
-			prob[distance-1+2] = prob[distance-1+2] + 0.3;
-			prob[distance-1+3] = prob[distance-1+3] + 0.2;
-			prob[distance-1+4] = prob[distance-1+4] + 0.1;
-		}
-		return prob;
-	}
 	
 	static void printArr(int[][] arr) {
 		for(int i = 0; i < arr.length;i ++) {
@@ -200,10 +58,394 @@ public class Driver {
 		System.out.println();
 	}
 	
+	static void printNum0(int num) {
+		for(int i = 0; i <= num;i ++) {
+			System.out.print(i + "\t");
+		}
+		System.out.println();
+	}
+	
 	static void printArr(int[] arr) {
 		for(int i = 0; i < arr.length;i ++) {
 			System.out.print(arr[i] + "\t");
 		}
 		System.out.println();
+	}
+	
+
+	static int findMax(int[][] arr) {
+		int max = 0;
+		for(int i = 0; i < arr.length;i ++) {
+			for(int j = 0; j < arr[i].length;j ++) {
+				if(max<arr[i][j]) {
+					max = arr[i][j];
+				}
+			}
+		}
+		return max;
+	}
+	
+	static int findMin(int[][] arr) {
+		int min = 1000;
+		for(int i = 0; i < arr.length;i ++) {
+			for(int j = 0; j < arr[i].length;j ++) {
+				if(min>arr[i][j]) {
+					min = arr[i][j];
+				}
+			}
+		}
+		return min;
+	}
+	
+	
+	
+	static int findCenter_mode(int[][] arr) {
+		int[] flattened = new int[16];
+		int[] modeVals = new int[16];
+		int[] modeCnt = new int[16];
+		for(int i = 0; i < 4;i ++) {
+			for(int j = 0; j < 4;j ++) {
+				flattened[i*4+j] = arr[i][j];
+			}
+		}
+		for(int i = 0; i < 16;i ++) {
+			int[] ans = getMode(assumeCenter(flattened, i));//ans[0] = modeVal; ans[1] = modeCount
+			modeVals[i] = ans[0];
+			modeCnt[i] = ans[1];
+		}
+		printNum0(15);
+		System.out.println("modeVals");
+		printArr(modeVals);
+		System.out.println("modeCnt");
+		printArr(modeCnt);
+		
+		//find max
+		int maxVal = modeCnt[0];
+		int maxIdx = 0;
+		for(int i = 1; i < 16;i ++) {
+			if(modeCnt[i] > maxVal) {
+				maxVal = modeCnt[i];
+				maxIdx = i;
+			}
+		}
+		return maxIdx;
+	}
+	
+	static int[] getMode(int[] arr) {
+		int[] occ = new int[arr.length];
+		for(int target = 0 ;target < arr.length;target ++) {
+			for(int j = 0 ; j < arr.length;j ++) {
+				if(arr[target]==arr[j]) {
+					occ[target] ++;
+				}
+			}
+		}
+		
+		//find max
+		int maxIdx = 0;
+		int maxVal = occ[0];
+		for(int i = 1; i < occ.length;i ++) {
+			if(occ[i] > maxVal) {
+				maxIdx = i;
+				maxVal = occ[i];
+			}
+		}
+		int[] ans = new int[2];//ans[0] = modeVal; ans[1] = modeCount
+		ans[0] = arr[maxIdx]; 
+		ans[1] = occ[maxIdx];
+		return ans;
+	}
+	
+	static int[] assumeCenter(int[] arr, int center) {
+		int[] adjusted = new int[arr.length];
+		if(center==0) {
+			adjusted[0] = arr[0];
+			adjusted[1] = arr[1]-5;
+			adjusted[2] = arr[2]-10;
+			adjusted[3] = arr[3]-15;
+			adjusted[4] = arr[4]-5;
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6]-10;
+			adjusted[7] = arr[7]-15;
+			adjusted[8] = arr[8]-10;
+			adjusted[9] = arr[9]-10;
+			adjusted[10] = arr[10]-10;
+			adjusted[11] = arr[11]-15;
+			adjusted[12] = arr[12]-15;
+			adjusted[13] = arr[13]-15;
+			adjusted[14] = arr[14]-15;
+			adjusted[15] = arr[15]-15;
+		}
+		if(center==1) {
+			adjusted[0] = arr[0]-5;
+			adjusted[1] = arr[1];
+			adjusted[2] = arr[2]-5;
+			adjusted[3] = arr[3]-10;
+			adjusted[4] = arr[4]-5;
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7]-10;
+			adjusted[8] = arr[8]-10;
+			adjusted[9] = arr[9]-10;
+			adjusted[10] = arr[10]-10;
+			adjusted[11] = arr[11]-10;
+			adjusted[12] = arr[12]-15;
+			adjusted[13] = arr[13]-15;
+			adjusted[14] = arr[14]-15;
+			adjusted[15] = arr[15]-15;
+		}
+		if(center==2) {
+			adjusted[0] = arr[0]-10;
+			adjusted[1] = arr[1]-5;
+			adjusted[2] = arr[2];
+			adjusted[3] = arr[3]-5;
+			adjusted[4] = arr[4]-10;
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7]-5;
+			adjusted[8] = arr[8]-10;
+			adjusted[9] = arr[9]-10;
+			adjusted[10] = arr[10]-10;
+			adjusted[11] = arr[11]-10;
+			adjusted[12] = arr[12]-15;
+			adjusted[13] = arr[13]-15;
+			adjusted[14] = arr[14]-15;
+			adjusted[15] = arr[15]-15;
+		}
+		if(center==3) {
+			adjusted[0] = arr[0]-15;
+			adjusted[1] = arr[1]-10;
+			adjusted[2] = arr[2]-5;
+			adjusted[3] = arr[3];
+			adjusted[4] = arr[4]-15;
+			adjusted[5] = arr[5]-10;
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7]-5;
+			adjusted[8] = arr[8]-15;
+			adjusted[9] = arr[9]-10;
+			adjusted[10] = arr[10]-10;
+			adjusted[11] = arr[11]-10;
+			adjusted[12] = arr[12]-15;
+			adjusted[13] = arr[13]-15;
+			adjusted[14] = arr[14]-15;
+			adjusted[15] = arr[15]-15;
+		}
+		if(center==4) {
+			adjusted[0] = arr[0]-5;
+			adjusted[1] = arr[1]-5;
+			adjusted[2] = arr[2]-10;
+			adjusted[3] = arr[3]-15;
+			adjusted[4] = arr[4];
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6]-10;
+			adjusted[7] = arr[7]-15;
+			adjusted[8] = arr[8]-5;
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10]-10;
+			adjusted[11] = arr[11]-15;
+			adjusted[12] = arr[12]-10;
+			adjusted[13] = arr[13]-10;
+			adjusted[14] = arr[14]-10;
+			adjusted[15] = arr[15]-15;
+		}
+		if(center==5) {
+			adjusted[0] = arr[0]-5;
+			adjusted[1] = arr[1]-5;
+			adjusted[2] = arr[2]-5;
+			adjusted[3] = arr[3]-10;
+			adjusted[4] = arr[4]-5;
+			adjusted[5] = arr[5];
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7]-10;
+			adjusted[8] = arr[8]-5;
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11]-10;
+			adjusted[12] = arr[12]-10;
+			adjusted[13] = arr[13]-10;
+			adjusted[14] = arr[14]-10;
+			adjusted[15] = arr[15]-10;
+		}
+		if(center==6) {
+			adjusted[0] = arr[0]-10;
+			adjusted[1] = arr[1]-5;
+			adjusted[2] = arr[2]-5;
+			adjusted[3] = arr[3]-5;
+			adjusted[4] = arr[4]-10;
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6];
+			adjusted[7] = arr[7]-5;
+			adjusted[8] = arr[8]-10;
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11]-5;
+			adjusted[12] = arr[12]-10;
+			adjusted[13] = arr[13]-10;
+			adjusted[14] = arr[14]-10;
+			adjusted[15] = arr[15]-10;
+		}
+		if(center==7) {
+			adjusted[0] = arr[0]-15;
+			adjusted[1] = arr[1]-10;
+			adjusted[2] = arr[2]-5;
+			adjusted[3] = arr[3]-5;
+			adjusted[4] = arr[4]-15;
+			adjusted[5] = arr[5]-10;
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7];
+			adjusted[8] = arr[8]-15;
+			adjusted[9] = arr[9]-10;
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11]-5;
+			adjusted[12] = arr[12]-15;
+			adjusted[13] = arr[13]-10;
+			adjusted[14] = arr[14]-10;
+			adjusted[15] = arr[15]-10;
+		}
+		if(center==8) {
+			adjusted[0] = arr[0]-10;
+			adjusted[1] = arr[1]-10;
+			adjusted[2] = arr[2]-10;
+			adjusted[3] = arr[3]-15;
+			adjusted[4] = arr[4]-5;
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6]-10;
+			adjusted[7] = arr[7]-15;
+			adjusted[8] = arr[8];
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10]-10;
+			adjusted[11] = arr[11]-15;
+			adjusted[12] = arr[12]-5;
+			adjusted[13] = arr[13]-5;
+			adjusted[14] = arr[14]-10;
+			adjusted[15] = arr[15]-15;
+		}
+		if(center==9) {
+			adjusted[0] = arr[0]-10;
+			adjusted[1] = arr[1]-10;
+			adjusted[2] = arr[2]-10;
+			adjusted[3] = arr[3]-10;
+			adjusted[4] = arr[4]-5;
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7]-10;
+			adjusted[8] = arr[8]-5;
+			adjusted[9] = arr[9];
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11]-10;
+			adjusted[12] = arr[12]-5;
+			adjusted[13] = arr[13]-5;
+			adjusted[14] = arr[14]-5;
+			adjusted[15] = arr[15]-10;
+		}
+		if(center==10) {
+			adjusted[0] = arr[0]-10;
+			adjusted[1] = arr[1]-10;
+			adjusted[2] = arr[2]-10;
+			adjusted[3] = arr[3]-10;
+			adjusted[4] = arr[4]-10;
+			adjusted[5] = arr[5]-5;
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7]-5;
+			adjusted[8] = arr[8]-10;
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10];
+			adjusted[11] = arr[11]-5;
+			adjusted[12] = arr[12]-10;
+			adjusted[13] = arr[13]-5;
+			adjusted[14] = arr[14]-5;
+			adjusted[15] = arr[15]-5;
+		}
+		if(center==11) {
+			adjusted[0] = arr[0]-15;
+			adjusted[1] = arr[1]-10;
+			adjusted[2] = arr[2]-10;
+			adjusted[3] = arr[3]-10;
+			adjusted[4] = arr[4]-15;
+			adjusted[5] = arr[5]-10;
+			adjusted[6] = arr[6]-5;
+			adjusted[7] = arr[7]-5;
+			adjusted[8] = arr[8]-15;
+			adjusted[9] = arr[9]-10;
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11];
+			adjusted[12] = arr[12]-15;
+			adjusted[13] = arr[13]-10;
+			adjusted[14] = arr[14]-5;
+			adjusted[15] = arr[15]-5;
+		}
+		if(center==12) {
+			adjusted[0] = arr[0]-15;
+			adjusted[1] = arr[1]-15;
+			adjusted[2] = arr[2]-15;
+			adjusted[3] = arr[3]-15;
+			adjusted[4] = arr[4]-10;
+			adjusted[5] = arr[5]-10;
+			adjusted[6] = arr[6]-10;
+			adjusted[7] = arr[7]-15;
+			adjusted[8] = arr[8]-5;
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10]-10;
+			adjusted[11] = arr[11]-15;
+			adjusted[12] = arr[12];
+			adjusted[13] = arr[13]-5;
+			adjusted[14] = arr[14]-10;
+			adjusted[15] = arr[15]-15;
+		}
+		if(center==13) {
+			adjusted[0] = arr[0]-15;
+			adjusted[1] = arr[1]-15;
+			adjusted[2] = arr[2]-15;
+			adjusted[3] = arr[3]-15;
+			adjusted[4] = arr[4]-10;
+			adjusted[5] = arr[5]-10;
+			adjusted[6] = arr[6]-10;
+			adjusted[7] = arr[7]-10;
+			adjusted[8] = arr[8]-5;
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11]-10;
+			adjusted[12] = arr[12]-5;
+			adjusted[13] = arr[13];
+			adjusted[14] = arr[14]-5;
+			adjusted[15] = arr[15]-10;
+		}
+		if(center==14) {
+			adjusted[0] = arr[0]-15;
+			adjusted[1] = arr[1]-15;
+			adjusted[2] = arr[2]-15;
+			adjusted[3] = arr[3]-15;
+			adjusted[4] = arr[4]-10;
+			adjusted[5] = arr[5]-10;
+			adjusted[6] = arr[6]-10;
+			adjusted[7] = arr[7]-10;
+			adjusted[8] = arr[8]-10;
+			adjusted[9] = arr[9]-5;
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11]-5;
+			adjusted[12] = arr[12]-10;
+			adjusted[13] = arr[13]-5;
+			adjusted[14] = arr[14];
+			adjusted[15] = arr[15]-5;
+		}
+		if(center==15) {
+			adjusted[0] = arr[0]-15;
+			adjusted[1] = arr[1]-15;
+			adjusted[2] = arr[2]-15;
+			adjusted[3] = arr[3]-15;
+			adjusted[4] = arr[4]-15;
+			adjusted[5] = arr[5]-10;
+			adjusted[6] = arr[6]-10;
+			adjusted[7] = arr[7]-10;
+			adjusted[8] = arr[8]-15;
+			adjusted[9] = arr[9]-10;
+			adjusted[10] = arr[10]-5;
+			adjusted[11] = arr[11]-5;
+			adjusted[12] = arr[12]-15;
+			adjusted[13] = arr[13]-10;
+			adjusted[14] = arr[14]-5;
+			adjusted[15] = arr[15];
+		}
+		return adjusted;
 	}
 }
